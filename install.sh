@@ -22,7 +22,7 @@ APPLY=""
 
 [ "$1" = "--apply" ] && APPLY="yes"
 
-ITEMS=("settings.json" "skills" "agents" "scripts")
+ITEMS=("settings.json" "skills" "agents" "scripts" "commands")
 
 mkdir -p "$CLAUDE_DIR"
 
