@@ -75,6 +75,10 @@
           {
             "type": "command",
             "command": "~/.claude/scripts/hooks/history-on-user-prompt.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hooks/lessons-auto-capture.sh"
           }
         ]
       }
