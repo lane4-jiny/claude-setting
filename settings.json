@@ -32,6 +32,15 @@
             "command": "~/.claude/scripts/hooks/bash-log.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hooks/pre-edit-convention-check.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
