@@ -68,6 +68,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hooks/history-on-user-prompt.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
