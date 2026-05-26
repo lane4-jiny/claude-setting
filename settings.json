@@ -81,6 +81,10 @@
           {
             "type": "command",
             "command": "~/.claude/scripts/hooks/session-start.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hooks/history-on-session-start.sh"
           }
         ]
       }
