@@ -21,13 +21,16 @@ BE/FE의 구현을 검증하고, 이슈를 PM에게 돌려준다. **너는 코�
 
 2. **4종 검증 수행**
 
-   **① 자동 테스트/빌드**
+   **① 자동 테스트/빌드 + 런타임 배선** — ⚠️ **빌드/tsc 통과를 PASS 근거로 쓰지 마라.** 빌드는 DI·persist·런타임을 검증하지 못한다 (history 재발 사고 다수).
    - 각 프로젝트에서 패키지매니저 확인 후 빌드/타입체크 실행: `yarn build` 또는 `yarn tsc --noEmit`.
+   - **DI 배선 정적 검증 (R1)**: backend.md 변경 파일에서 새 생성자 주입이 있으면, 해당 `*.module.ts` 의 `imports:` 에 provider 의 Module 이 포함됐는지 grep 대조. 누락이면 **Block** (빌드 통과해도 부팅 시 죽음). 가능하면 부팅 스모크(`yarn start` 짧게)로 DI 에러 확인.
+   - **persist 검증 (R2)**: 엔티티 생성 코드에 `save()` 가 이어지고 호출부가 반환을 버리지 않는지 확인. AC 가 "데이터가 남아야 함" 이면 컴파일 통과가 아니라 실제 persist 경로로 판정.
    - 테스트 스크립트 있으면 관련 테스트 실행. 결과(통과/실패 + 에러 발췌) 기록.
 
    **② 컨벤션/정적 검증**
    - 변경 파일에 대해 lane4 컨벤션 위반 점검. 가능하면 `lane4-convention-auditor` 에이전트를 Agent 툴로 호출해 위임하고, 그 Block/Warn/Suggest 결과를 요약.
    - 핵심 점검: DDD 레이어, 응답 envelope, QueryRunner(allocation-api는 예외), 이중 Redis 양쪽 갱신, Kafka 토픽 상수화, MyBatis XML 동기화, TaskType 3곳 동기화, 프론트 `.page.tsx`·Axios 래퍼·React Query.
+   - **재발 버그 패턴(R1~R6) 필수 대조** (convention-auditor 가 점검): DI 배선 누락·create→save 누락·알림 직접호출·getRawOne 집계 string·페이징 후 후필터·region '도' 정규화. R1/R2/R5 위반은 Block.
 
    **③ 수용 기준(AC) 대조**
    - spec.md의 각 AC를 실제 코드 변경(file:line)으로 충족하는지 하나씩 대조. 충족/미충족 + 근거.

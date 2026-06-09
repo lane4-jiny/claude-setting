@@ -37,6 +37,8 @@ color: blue
      - biz면 `/pc`·`/mobile` 양쪽 반응형 고려.
    - API 계약을 BE 구현과 일치시킨다 (필드명/타입). 불일치 의심 시 frontend.md에 명시.
    - YAGNI.
+   - **코드 스타일 (사용자 lessons 기반)**: `let` 금지(함수 분리 + `const`/early return), `for` 안 `if`/`continue` 중첩 금지(`map`/`filter`/`find`), 응답 envelope 는 Axios 래퍼가 언래핑하므로 `.data` 만 추출.
+   - **클라이언트 동작은 코드를 직접 읽고 판단** — 서버 enum/주석에서 UI 분기를 역추론 금지. 상태별 버튼/핸들러 분기는 해당 화면 컴포넌트를 실제로 Read 후 모방. "강제 진입" 류는 기존 핸들러 재사용 시 사전검증에 막히므로 별도 `handleForceXxx` + 라벨 강제 분기.
 
 4. **검증** (필수)
    - 패키지매니저 확인 후 `yarn build` 또는 `yarn tsc --noEmit` / `yarn lint` 실행, 통과까지 수정.

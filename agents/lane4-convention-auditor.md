@@ -84,6 +84,23 @@ color: orange
 3. **커밋 메시지**: 한국어 + conventional prefix (`feat:`, `fix:`, `refactor:`)
 4. **Swagger 로직 작성 금지** (klook-api 명시)
 
+## Lane4 재발 버그 패턴 (history 검증됨 — **빌드/tsc 통과해도 터지는 것들, 최우선 점검**)
+
+`yarn build`·`tsc --noEmit` 가 통과해도 아래는 잡히지 않는다. 변경 diff 에서 해당 신호가 보이면 반드시 대조한다.
+
+- **R1. DI 배선 누락 (Block)** — 서비스 생성자에 다른 모듈의 provider(예: `NotificationService`)를 새로 주입했는데, 그 서비스가 속한 `*.module.ts` 의 `imports:` 배열에 provider 의 Module(예: `NotificationModule`)을 추가하지 않음. **빌드는 통과하고 부팅 시 Nest DI 에러로 죽는다.** 변경 파일에 새 생성자 주입이 보이면 해당 모듈의 `imports` 를 grep 해서 대조 필수.
+  - 근거: `2026-06-02_driver-force-status-slack-di-missing` — DriverService 가 NotificationService 주입했으나 DriverModule 에 NotificationModule import 누락.
+- **R2. 엔티티 생성 후 persist 누락 (Block)** — `createXxx()` / `new Entity()` 가 객체를 만들어 **반환만** 하고 `repository.save()` / `queryRunner.manager.save()` 가 없거나, 호출부가 반환값을 버림 → row 미생성. `create*` 라는 이름의 헬퍼 호출 뒤에 save 가 이어지는지 확인.
+  - 근거: `2026-06-02_klook-cancel-history-not-saved` — createUpdateHistory 반환값을 order-cancel.handler.ts:46 이 버림. 정상 패턴: `update.allocation.service.ts:100-107`.
+- **R3. 알림 직접 호출 (Block → 위임)** — 신규 코드에서 `slackPush` / Slack webhook / `NotificationUtils` 를 컨트롤러·서비스에서 직접 호출 금지. `NotificationService` 에 `notifyXxx` 메서드를 추가하고 위임해야 함.
+  - 근거: notification 카탈로그 문서 + 사용자 feedback(`feedback_notification_service_pattern`).
+- **R4. getRawOne/getRawMany 집계값 string (Warn)** — `MAX()`·`COUNT()`·`SUM()` 결과는 string 으로 온다. 산술/비교에 바로 쓰면 `NaN`·오작동. `Number(...)` 캐스팅 확인.
+  - 근거: `2026-05-28_klook-collect-after-nan-bug` — MAX(NOTIFIED_AT) string → `after:NaN` Gmail 쿼리.
+- **R5. 페이징 후 메모리 후필터 (Block)** — `LIMIT/OFFSET`(QueryBuilder `.skip().take()` / `.limit()`) 으로 페이징한 **뒤에** 메모리에서 필터를 적용하면, `totalCount` 가 필터 전 전체로 잡히고 페이지가 덜 채워진다. 순서는 **필터 → 집합 확정 → totalCount → 페이징**.
+  - 근거: `2026-06-09_car-mileage-totalcount-perpage-anomaly-filter` — anomalyOnly 후필터가 페이징 뒤.
+- **R6. region siDo '도' 정규화 (Warn)** — `경기`/`경기도`, `강원`/`강원도` 등 '도' 접미사 정규화 불일치로 zone 매칭 실패. DB 는 보통 `경기`(접미사 없음). reverseGeo 폴백·신규 주소 매칭 추가 시 정규화 일치 확인.
+  - 근거: `2026-05-28_ke-zone-gyeonggi-mismatch`, `2026-05-28_service-region-gyeonggi-duplication`.
+
 ## 점검 절차
 
 1. 메인 에이전트로부터 변경 diff 또는 변경 파일 목록을 받음

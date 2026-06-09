@@ -76,6 +76,7 @@ PM이 기획 대화 후 작성. 모든 에이전트가 가장 먼저 읽는 단�
 
 ## 컨벤션 점검 (자가)
 - 이중 Redis / QueryRunner / envelope / Kafka 토픽 등 해당 항목 준수 여부
+- 재발 버그 점검: DI 배선(새 주입 provider의 Module import) ✅/N·A, persist(create→save) ✅/N·A, getRawOne 집계 캐스팅, 페이징 전 필터, 알림 NotificationService 위임
 
 ## QA에게 전달할 메모
 - (테스트 시 주의점, 로컬 구동법, 시드 데이터 등)

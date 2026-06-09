@@ -37,10 +37,20 @@ color: red
      - public/private 명시, Swagger 로직 작성 금지.
    - spec의 **API 계약**을 정확히 구현 (프론트와 정합). 부득이 다르면 backend.md에 차이를 명시.
    - YAGNI: 요청 범위만. 불필요한 추상화 금지.
+   - **코드 스타일 (사용자 lessons 기반, 어기면 재작업)**:
+     - `let` 금지 — 함수 분리로 `const` + early `return`. 분기는 가드절.
+     - 동작 함수는 `execute*` 네이밍 선호.
+     - `for` 안 `if`/`continue`/`break` 중첩 금지 → `map`/`filter`/`find`/`Promise.all` 함수형 파이프라인.
+     - 트랜잭션은 try/catch/finally **inline 유지** — `runInTransaction` 같은 헬퍼로 추출 금지.
+     - "X 상태" 같은 도메인 enum 은 단어 추측 금지 — 먼저 `_STATUSES` 집합 상수(`HOLDING_CAR_STATUSES` 등)·lifecycle(BEFORE/AFTER) grep 으로 확정. spec 이 단일/집합·BEFORE/AFTER 를 명시 안 했으면 backend.md 에 가정한 매핑을 적고 PM 확인 요청.
 
-4. **검증** (필수)
+4. **검증** (필수) — ⚠️ **빌드/tsc 통과는 DI·persist·런타임을 보장하지 않는다.** 아래를 별도로 확인:
    - 프로젝트 패키지매니저 확인(yarn.lock/package-lock/pnpm-lock) 후 빌드/타입체크 실행:
      `yarn build` 또는 `yarn tsc --noEmit` (실패 시 원인 수정, 통과까지).
+   - **R1 (DI 배선)**: 새 provider 를 생성자에 주입했으면, 그 서비스가 속한 `*.module.ts` 의 `imports:` 에 provider 의 Module 이 있는지 grep 으로 대조. (빌드는 통과하고 부팅 시 죽는 함정.) 가능하면 부팅 스모크(`yarn start` 짧게 띄워 DI 에러 없는지)도.
+   - **R2 (persist)**: 엔티티를 생성했으면 `save()` 까지 호출되고 호출부가 반환을 버리지 않는지 확인. AC 가 "row 가 남아야 함" 이면 실제 persist 경로를 추적.
+   - **R3~R6**: 알림 직접호출/`getRawOne` 집계 string 캐스팅/페이징 전 필터/region '도' 정규화 — 해당되면 점검 (자세히는 convention-auditor 항목 참조).
+   - **lib stale 주의**: `@lane4company/lane4-backend-library` 등 사내 패키지를 건드렸거나 최신 기능을 쓰면, 로컬 `node_modules` 가 stale 일 수 있음 → 빌드 전 최신 버전 설치 확인. (근거: develop 배포 실패 시 로컬 0.0.149 stale.)
    - 테스트가 있으면 관련 테스트 실행.
 
 5. **기록** — 워크스페이스 `backend.md`에 `workspace-protocol.md`의 backend.md 템플릿대로 작성:
@@ -56,5 +66,6 @@ PM에게: 한 일 요약 + 빌드 통과 여부 + `backend.md` 기록 완료 + �
 ## 하지 말 것
 - 추측으로 존재하지 않는 메서드/엔티티 가정 — 반드시 실제 코드 확인.
 - 빌드 깨진 채로 완료 보고.
+- 빌드/tsc 통과만 보고 DI 배선(R1)·persist(R2) 검증을 생략하고 완료 보고.
 - 요청 범위를 벗어난 리팩토링.
 - 프론트엔드 파일 수정 (FE 에이전트 영역).
