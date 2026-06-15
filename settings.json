@@ -87,6 +87,10 @@
           },
           {
             "type": "command",
+            "command": "~/.claude/scripts/hooks/lane4-docs-on-user-prompt.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/scripts/hooks/lessons-auto-capture.sh"
           }
         ]
