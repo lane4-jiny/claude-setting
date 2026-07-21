@@ -16,11 +16,23 @@ description: |
 
 LANE4 운송 서비스 플랫폼의 MySQL DB를 자연어로 조회하고 분석하는 스킬이다.
 
-## MCP 도구
+## MCP 도구 — 개발계(dev) / 운영계(prod) 분리
 
-`lane4-mysql` MCP 서버의 도구를 사용한다:
+DB 커넥션이 두 개로 분리되어 있다. 환경을 **반드시 의식하고** 선택한다:
 
-- `query`: SELECT 쿼리 실행 (READ-ONLY)
+| 서버 | 환경 | 대상 호스트 | 도구 |
+|------|------|------------|------|
+| `lane4-mysql-dev` | **개발계(test aurora)** | test-lane4-aurora... | `mcp__lane4-mysql-dev__mysql_query` |
+| `lane4-mysql-prod` | **운영계(prod aurora, 실데이터)** | prod-lane4-aurora... | `mcp__lane4-mysql-prod__mysql_query` |
+
+**선택 규칙 (중요):**
+
+- **기본값은 개발계(`lane4-mysql-dev`)** 이다. 사용자가 "개발계 / 개발 / test / 샘플 / 테스트 계정"을 말하거나 환경을 특정하지 않으면 **dev**를 사용한다.
+- 사용자가 "운영 / 운영계 / prod / 실데이터"를 **명시적으로** 요청할 때만 `lane4-mysql-prod`를 사용한다.
+- 운영계(prod) 조회 시에는 실회원 개인정보(PII: 이름·휴대폰·이메일·주민번호 등)를 **원칙적으로 출력하지 않고** USER_ID·비식별 컬럼만 노출한다. 식별정보가 꼭 필요하면 마스킹하거나 사용자에게 먼저 확인한다. "테스트로 아무 계정 쓰라"는 안내 금지.
+- 어느 서버를 썼는지 결과에 한 줄로 밝힌다 (예: "(개발계 조회)").
+
+두 서버 모두 READ-ONLY이며 `query` 도구로 SELECT만 실행한다. INSERT/UPDATE/DELETE는 MCP 레벨에서 차단되어 있다.
 
 ## 핵심 원칙
 

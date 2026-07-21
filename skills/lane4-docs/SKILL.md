@@ -651,9 +651,37 @@ terms:
 
 3. 커밋 (/git-committer 스킬 사용)
    /git-committer 스킬을 호출하여 커밋
+
+4. origin push (문서 커밋 후 자동)
+   현재 브랜치가 develop 또는 master 일 때만 push
 ```
 
 **중요**: 커밋 시 반드시 `/git-committer` 스킬을 사용하세요.
+
+### 문서 커밋 후 자동 push (필수)
+
+문서 커밋을 마치면 **사용자에게 다시 묻지 않고** origin 에 push 한다. 이 스킬로 문서 작업을 한 경우에 한해 사전 승인된 동작이다.
+
+```bash
+cd {docs-project-root}
+branch=$(git branch --show-current)
+case "$branch" in
+  develop|master) git push origin "$branch" ;;
+  *) echo "push 생략: $branch 는 develop/master 가 아님" ;;
+esac
+```
+
+**적용 범위와 가드 (반드시 지킬 것):**
+
+| 항목 | 규칙 |
+|------|------|
+| 대상 레포 | **lane4-docs 문서 프로젝트만.** 코드 레포(lane4-admin-api 등)는 이 규칙 대상이 아니며 push 하지 않는다 |
+| 대상 브랜치 | `develop` 또는 `master` 만. feature/docs-* 등 그 외 브랜치는 push 생략하고 사용자에게 보고 |
+| force | **금지.** `--force`/`--force-with-lease` 절대 사용하지 않는다 |
+| 실패 시 | non-fast-forward 등으로 실패하면 **임의로 rebase/merge/force 하지 말고** 실패 사실을 사용자에게 보고 |
+| 범위 | push 전에 `git log origin/{branch}..{branch}` 로 밀려나갈 커밋을 확인하고, 문서와 무관한 커밋이 섞여 있으면 push 하지 말고 사용자에게 확인 |
+
+> ⚠️ `/git-committer` 스킬은 "push 금지"를 명시하지만, **문서 프로젝트의 문서 커밋에 한해** 이 규칙이 우선한다(사용자 지시). 코드 레포에는 여전히 `/git-committer` 의 push 금지가 적용된다.
 
 ### Rebase & Merge (깔끔한 브랜치 그래프)
 
