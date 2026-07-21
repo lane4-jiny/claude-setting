@@ -19,6 +19,10 @@
           {
             "type": "command",
             "command": "~/.claude/scripts/hooks/history-on-stop.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hooks/lane4-docs-on-stop.sh"
           }
         ]
       }
@@ -126,6 +130,9 @@
       }
     }
   },
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "autoCompactEnabled": false
+  "autoCompactEnabled": false,
+  "agentPushNotifEnabled": true,
+  "model": "opus[1m]"
 }

@@ -61,6 +61,18 @@ REASON=$(cat <<EOF
 2. 이번 작업이 기존 항목의 후속이면 해당 .md 파일을 Edit 로 업데이트
 3. 신규 주제면 ~/IdeaProjects/claudedocs/history/${TODAY}_<slug>.md 새로 작성
    - slug: 영문 kebab-case, 핵심 키워드 2~4 단어 (예: creatrip-status-resync)
+   - 파일 맨 위에 아래 YAML frontmatter 를 반드시 포함한다 (Obsidian Dataview 집계용):
+     ---
+     type: history
+     project: $PROJECT
+     domain: <핵심 도메인 키워드 1개, 예: ssgdfs / payment / allocation / klook / driver-schedule>
+     date: $TODAY
+     committed: <커밋했으면 true, 미커밋이면 false>
+     followup: <후속작업이 남았으면 true, 없으면 false>
+     tags:
+       - history
+     ---
+   - frontmatter 값은 추측하지 말고 실제 작업 기준으로 채운다. project 는 실제 작업한 lane4 프로젝트명으로 보정 가능.
 4. 신규 파일을 만들었으면 INDEX.md 맨 위에 한 줄 추가:
    - [한국어 제목](파일명.md) — 프로젝트명 / 한 줄 요약 / $TODAY
 5. 저장 후 짧게 "히스토리 저장 완료" 안내 1줄만 출력하고 종료
